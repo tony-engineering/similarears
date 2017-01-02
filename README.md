@@ -1,0 +1,1 @@
+Similarears is a web application using Soundcloud API to find people with the same musical tastes as you.
