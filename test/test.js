@@ -2,8 +2,22 @@ var expect = require('expect.js');
 var assert = require('assert');
 var request = require("request");
 
-describe('PROFILE TESTS', function() {
+describe('TESTS', function() {
 	
+	it('Should get all user\'s data', function(done) {
+		this.timeout(100000);
+		
+		request("http://localhost:3000/calculation/get-all-dataget-all-data",
+			function(error, response, body) {
+			
+			responseObj = JSON.parse(body);
+			done();
+		});
+    });
+});
+
+describe.skip('TESTS - OK', function() {
+
     it('Resolve soundcloud user profile url', function(done) {
 		
 		url = "https://soundcloud.com/xtonex";
@@ -32,7 +46,7 @@ describe('PROFILE TESTS', function() {
 				function(error, response, body) {
 
 				responseObj_track_get = JSON.parse(body);
-				expect(responseObj_track_get.length).to.be.greaterThan(1800);
+				expect(responseObj_track_get.favoriters.length).to.be.greaterThan(1800);
 				done();
 			});
 		});		
@@ -56,6 +70,5 @@ describe('PROFILE TESTS', function() {
 				done();
 			});
 		});
-    });
-	
+    });	
 });

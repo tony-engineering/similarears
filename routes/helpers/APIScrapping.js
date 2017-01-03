@@ -5,8 +5,6 @@ var APIScrapping = {};
 
 APIScrapping.getResults = function(next_href, resultsList) {
 	
-	console.log(next_href);
-
 	var deferred = Q.defer();
 	request(next_href, function(error, response, body) {
 

@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var resolve = require('./routes/resolve');
 var likes = require('./routes/likes');
 var favoriters = require('./routes/favoriters');
+var calculation = require('./routes/calculation');
 
 var app = express();
 
@@ -26,6 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', resolve);
 app.use('/likes', likes);
 app.use('/favoriters', favoriters);
+app.use('/calculation', calculation);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
