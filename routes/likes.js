@@ -57,15 +57,4 @@ function addLikesToList(likesCollection, fullLikesList) {
 	return fullLikesList;
 }
 
-router.get('/count', function(req, res, next) {
-	
-	var userUri = req.query.uri;
-	
-	request(userUri+"?consumer_key="+config.consumer_key,
-			function(error, response, body) {
-				
-		res.json({likes_count: JSON.parse(body).public_favorites_count});
-	});
-});
-
 module.exports = router;
