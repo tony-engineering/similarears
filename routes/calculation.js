@@ -46,13 +46,6 @@ router.get('/get-all-data', function(req, res, next) {
 
                 console.log("all finished");
                 console.log("ranking length at the end : "+Object.keys(ranking).length);
-
-                console.log("ranking : ", ranking);
-
-                /*sortedRanking = ranking.sort(function(a, b) {
-                    console.log("comparing "+a+" and "+b);
-                    return a - b;
-                });*/
                 
                 sortedRanking = [];
                 Object.keys(ranking)
@@ -65,8 +58,6 @@ router.get('/get-all-data', function(req, res, next) {
                 .forEach(function (d) {
                     sortedRanking.push([d[0], d[1]]);
                 });
-
-                console.log("sortedRanking : ", sortedRanking);
 
                 res.json({ranking: sortedRanking});
             });
@@ -109,7 +100,13 @@ function getFavoriters(trackId, allData) {
     request("http://localhost:3000/favoriters/get?trackId="+trackId,
         function(error, response, body) {
 
-        responseObj_track_get = JSON.parse(body);
+        try {
+            responseObj_track_get = JSON.parse(body);
+        } catch(e) {
+            console.log("Parsing error occured in getFavoriters with trackId "+trackId+", error: ",e);
+            return;
+        }
+
         deferred.resolve(responseObj_track_get.favoriters);
     });
     return deferred.promise;

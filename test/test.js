@@ -10,6 +10,8 @@ describe('TESTS', function() {
 		//url = "https://soundcloud.com/xtonex";
 		//url = "https://soundcloud.com/djmentol2";
 		var url = "https://soundcloud.com/jay-kay";
+		//url = "https://soundcloud.com/romain-vina";
+		//var url = "https://soundcloud.com/user-141278973";
 		
 		var options = {
 			url: "http://localhost:3000/calculation/get-all-data?url="+url,
@@ -22,10 +24,32 @@ describe('TESTS', function() {
 			console.log(body);
 			done();
 		});
-    });	
+    });
 });
 
 describe.skip('TESTS - OK', function() {
+
+	it('Should count favoriters for one track and then get all these favoriters', function(done) {
+		this.timeout(10000);
+
+		trackId = "285989934";
+		
+		request("http://localhost:3000/favoriters/favoritings-count?trackId="+trackId,
+			function(error, response, body) {
+
+			responseObj_track_count = JSON.parse(body);
+			expect(responseObj_track_count.favoritings_count).to.be.greaterThan(1970);
+
+			request("http://localhost:3000/favoriters/get?trackId="+trackId,
+				function(error, response, body) {
+
+				responseObj_track_get = JSON.parse(body);
+				expect(responseObj_track_get.favoriters.length).to.be.greaterThan(1800);
+				
+				done();
+			});
+		});		
+    });
 
 	it('Should get all user\'s data', function(done) {
 		this.timeout(100000);
@@ -66,27 +90,6 @@ describe.skip('TESTS - OK', function() {
 			expect(responseObj.userUri).equal('https://api.soundcloud.com/users/5912982');
 			done();
 		});
-    });
-	
-	it('Should count favoriters for one track and then get all these favoriters', function(done) {
-		this.timeout(10000);
-
-		trackId = "285989934";
-		
-		request("http://localhost:3000/favoriters/favoritings-count?trackId="+trackId,
-			function(error, response, body) {
-
-			responseObj_track_count = JSON.parse(body);
-			expect(responseObj_track_count.favoritings_count).to.be.greaterThan(1970);
-
-			request("http://localhost:3000/favoriters/get?trackId="+trackId,
-				function(error, response, body) {
-
-				responseObj_track_get = JSON.parse(body);
-				expect(responseObj_track_get.favoriters.length).to.be.greaterThan(1800);
-				done();
-			});
-		});		
     });
 	
 	it('Should get all user\'s likes', function(done) {
