@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "nodemon ./bin/www",
-	"test": "mocha"
+    "debug": "set DEBUG=* & nodemon ./bin/www",
+	  "test": "mocha"
   },
   "dependencies": {
     "body-parser": "~1.15.2",

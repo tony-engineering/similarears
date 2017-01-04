@@ -9,18 +9,18 @@ describe('TESTS', function() {
 		
 		//url = "https://soundcloud.com/xtonex";
 		//url = "https://soundcloud.com/djmentol2";
-		var url = "https://soundcloud.com/romain-vina";
+		var url = "https://soundcloud.com/jay-kay";
 		
 		var options = {
-			url: "http://localhost:3000/calculation/analyse-data?url="+url,
+			url: "http://localhost:3000/calculation/get-all-data?url="+url,
 			timeout: 999999999
 		};
 
 		request(options,
 			function(error, response, body) {
 			
-			var responseObj = JSON.parse(body);
-			console.log(responseObj);
+			console.log(body);
+			done();
 		});
     });	
 });

@@ -19,21 +19,56 @@ router.get('/get-all-data', function(req, res, next) {
             function(error, response, body) {
             
             var responseObj_likes = JSON.parse(body);
-            var allData = {};
+            var allData = [];
             var promises = [];
+            var ranking = {};
 
             var limit = responseObj_likes.likes.length;
-            for(i=0; i<limit; i++) {
+            for(var i=0; i<limit; i++) {
                 var trackId = responseObj_likes.likes[i];
-                var promiseTrackid = getFavoriters(trackId, allData);
+                var promiseTrackid = getFavoriters(trackId, allData).then(function(favoritersForThisTrack){
+
+                    favoritersForThisTrack.forEach(function(favoriter, index){
+                        if(favoriter in ranking) {
+                            ranking[favoriter]++;
+                        }
+                        else {
+                            ranking[favoriter] = 0;
+                        }
+                    });
+
+                    console.log("ranking length : "+Object.keys(ranking).length);
+                });
                 promises.push(promiseTrackid);
             }
 
             Q.all(promises).then(function() {
 
                 console.log("all finished");
-                console.log("-------allData:"+allData);
-                res.json(allData);
+                console.log("ranking length at the end : "+Object.keys(ranking).length);
+
+                console.log("ranking : ", ranking);
+
+                /*sortedRanking = ranking.sort(function(a, b) {
+                    console.log("comparing "+a+" and "+b);
+                    return a - b;
+                });*/
+                
+                sortedRanking = [];
+                Object.keys(ranking)
+                .map(function (k) { return [k, ranking[k]]; })
+                .sort(function (a, b) {
+                    if (a[1] < b[1]) return 1;
+                    if (a[1] > b[1]) return -1;
+                    return 0;
+                })
+                .forEach(function (d) {
+                    sortedRanking.push([d[0], d[1]]);
+                });
+
+                console.log("sortedRanking : ", sortedRanking);
+
+                res.json({ranking: sortedRanking});
             });
         });
     });
@@ -75,8 +110,7 @@ function getFavoriters(trackId, allData) {
         function(error, response, body) {
 
         responseObj_track_get = JSON.parse(body);
-        allData[trackId] = responseObj_track_get.favoriters;
-        deferred.resolve();
+        deferred.resolve(responseObj_track_get.favoriters);
     });
     return deferred.promise;
 }
