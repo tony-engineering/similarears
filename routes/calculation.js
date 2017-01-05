@@ -5,9 +5,11 @@ var config = require('../config');
 var likes = require('./likes');
 var favoriters = require('./favoriters');
 var Q = require('q');
+var fs = require('fs');
 
 router.get('/get-all-data', function(req, res, next) {
-	
+	req.setTimeout(0);
+
 	var url = req.query.url;
 
     request("http://localhost:3000/resolve-profile-uri?url="+url,
@@ -22,22 +24,27 @@ router.get('/get-all-data', function(req, res, next) {
             var allData = [];
             var promises = [];
             var ranking = {};
+            var writeStream = fs.createWriteStream("output.json");
+            writeStream.write("{");
 
             var limit = responseObj_likes.likes.length;
+            //var limit = 2;
             for(var i=0; i<limit; i++) {
                 var trackId = responseObj_likes.likes[i];
+                if(trackId == "249465206") continue;
+
                 var promiseTrackid = getFavoriters(trackId, allData).then(function(favoritersForThisTrack){
 
-                    favoritersForThisTrack.forEach(function(favoriter, index){
-                        if(favoriter in ranking) {
-                            ranking[favoriter]++;
-                        }
-                        else {
-                            ranking[favoriter] = 0;
-                        }
-                    });
+                    if(!favoritersForThisTrack.error) {
+                        var processingTrackId =  Object.keys(favoritersForThisTrack)[0];
+                        writeStream.write('"'+processingTrackId+'":'+JSON.stringify(favoritersForThisTrack[processingTrackId]));
+                    }
+                    else {
+                        var error = favoritersForThisTrack;
+                        writeStream.write(JSON.stringify(error));
+                    }
 
-                    console.log("ranking length : "+Object.keys(ranking).length);
+                    writeStream.write(",");
                 });
                 promises.push(promiseTrackid);
             }
@@ -47,7 +54,10 @@ router.get('/get-all-data', function(req, res, next) {
                 console.log("all finished");
                 console.log("ranking length at the end : "+Object.keys(ranking).length);
                 
-                sortedRanking = [];
+                writeStream.write("}");
+                writeStream.end();
+
+                /*sortedRanking = [];
                 Object.keys(ranking)
                 .map(function (k) { return [k, ranking[k]]; })
                 .sort(function (a, b) {
@@ -57,10 +67,11 @@ router.get('/get-all-data', function(req, res, next) {
                 })
                 .forEach(function (d) {
                     sortedRanking.push([d[0], d[1]]);
-                });
+                });*/
 
-                res.json({ranking: sortedRanking});
-            });
+                //res.json({ranking: sortedRanking});
+                res.json({result: "File created"});
+            }).done();
         });
     });
 });
@@ -97,17 +108,23 @@ router.get('/analyse-data', function(req, res, next){
 function getFavoriters(trackId, allData) {
 
     var deferred = Q.defer();
-    request("http://localhost:3000/favoriters/get?trackId="+trackId,
-        function(error, response, body) {
+    var options = {
+		url: "http://localhost:3000/favoriters/get?trackId="+trackId,
+		timeout: 999999999
+	};
+    request(options, function(error, response, body) {
 
         try {
             responseObj_track_get = JSON.parse(body);
+            deferred.resolve(responseObj_track_get);
         } catch(e) {
             console.log("Parsing error occured in getFavoriters with trackId "+trackId+", error: ",e);
-            return;
+            console.log("body:"+body);
+            console.log("response:",response);
+            console.log("error:",error);
+            deferred.resolve({error:"Parsing error occured in getFavoriters with trackId "+trackId+", error: "+e});
+            process.exit();
         }
-
-        deferred.resolve(responseObj_track_get.favoriters);
     });
     return deferred.promise;
 }

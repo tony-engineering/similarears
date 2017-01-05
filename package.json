@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon ./bin/www",
-    "debug": "set DEBUG=* & nodemon ./bin/www",
+    "start": "nodemon --config nodemon.json --stack-size=9000000 ./bin/www",
+    "debug": "set DEBUG=* & nodemon --config nodemon.json ./bin/www",
 	  "test": "mocha"
   },
   "dependencies": {

@@ -17,15 +17,27 @@ router.get('/favoritings-count', function(req, res, next) {
 });
 
 router.get('/get', function(req, res, next) {
-	
+	req.setTimeout(0);
+
 	var favoritersList = [];
 	var trackId = req.query.trackId;
 	
 	var next_href = "https://api.soundcloud.com/tracks/"+trackId+"/favoriters.json?consumer_key="+config.consumer_key+"&linked_partitioning=1&page_size=200";
 	
-	APIScrapping.getResults(next_href, favoritersList).then(function(finalFavoritersList){
+	return APIScrapping.getResults(next_href, favoritersList).then(function(finalFavoritersList){
 
-		res.json({favoriters: finalFavoritersList});
+		//console.log("============ finalFavoritersList : "+finalFavoritersList);
+
+		if(!finalFavoritersList) {
+			console.log("finalFavoritersList: "+finalFavoritersList);
+		}
+		if(finalFavoritersList.length == 0) {
+			console.log("finalFavoritersList: "+finalFavoritersList);
+		}
+
+		var resultObj = {};
+		resultObj[trackId] = finalFavoritersList;
+		res.json(resultObj);
 	});
 });
 
