@@ -3,6 +3,7 @@ var router = express.Router();
 var request = require("request");
 var config = require('../config');
 var likes = require('./likes');
+var resolve = require('./resolve');
 var favoriters = require('./favoriters');
 var Q = require('q');
 var fs = require('fs');
@@ -11,29 +12,24 @@ router.get('/get-all-data', function(req, res, next) {
 	req.setTimeout(0);
 
 	var url = req.query.url;
+    resolve.profile(url).then(function(result) {
 
-    request("http://localhost:3000/resolve-profile-uri?url="+url,
-        function(error, response, body) {
-        
-        responseObj = JSON.parse(body);
+        likes.all(result.userUri).then(function(responseObj_likes) {
             
-        request("http://localhost:3000/likes/all?uri="+responseObj.userUri,
-            function(error, response, body) {
-            
-            var responseObj_likes = JSON.parse(body);
             var allData = [];
             var promises = [];
             var ranking = {};
             var writeStream = fs.createWriteStream("output.json");
             writeStream.write("{");
 
-            var limit = responseObj_likes.likes.length;
-            //var limit = 2;
+            //var limit = responseObj_likes.likes.length;
+            var limit = 2;
             for(var i=0; i<limit; i++) {
                 var trackId = responseObj_likes.likes[i];
-                if(trackId == "249465206") continue;
 
-                var promiseTrackid = getFavoriters(trackId, allData).then(function(favoritersForThisTrack){
+                // TODO : get nb favoriters then be able to skip if too much
+
+                var promiseTrackid = favoriters.get(trackId).then(function(favoritersForThisTrack) {
 
                     if(!favoritersForThisTrack.error) {
                         var processingTrackId =  Object.keys(favoritersForThisTrack)[0];
@@ -71,9 +67,10 @@ router.get('/get-all-data', function(req, res, next) {
 
                 //res.json({ranking: sortedRanking});
                 res.json({result: "File created"});
+
             }).done();
-        });
-    });
+        }).done();
+    }).done();
 });
 
 router.get('/analyse-data', function(req, res, next){
@@ -104,29 +101,5 @@ router.get('/analyse-data', function(req, res, next){
         res.json({results: ranking});
     });
 });
-
-function getFavoriters(trackId, allData) {
-
-    var deferred = Q.defer();
-    var options = {
-		url: "http://localhost:3000/favoriters/get?trackId="+trackId,
-		timeout: 999999999
-	};
-    request(options, function(error, response, body) {
-
-        try {
-            responseObj_track_get = JSON.parse(body);
-            deferred.resolve(responseObj_track_get);
-        } catch(e) {
-            console.log("Parsing error occured in getFavoriters with trackId "+trackId+", error: ",e);
-            console.log("body:"+body);
-            console.log("response:",response);
-            console.log("error:",error);
-            deferred.resolve({error:"Parsing error occured in getFavoriters with trackId "+trackId+", error: "+e});
-            process.exit();
-        }
-    });
-    return deferred.promise;
-}
 
 module.exports = router;

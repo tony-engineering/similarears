@@ -1,23 +1,28 @@
 var express = require('express');
-var router = express.Router();
 var request = require("request");
 var config = require('../config')
+var Q = require('q');
 
-/* GET home page. */
-router.get('/resolve-profile-uri', function(req, res, next) {
-	
-	url = req.query.url;
-	
+var resolve = {};
+
+resolve.profile = function(url) {
+
+	var deferred = Q.defer();
+
 	if(!url) {
-		res.json({error: "No user url specified."});
+		res = {error: "No user url specified."};
+		deferred.resolve(res);
 	}
-	
+
 	request("https://api.soundcloud.com/resolve.json?consumer_key="+config.consumer_key+"&url="+url, 
 			function(error, response, body) {
 				
-		res.json({userUri: JSON.parse(body).uri});
+		res = {userUri: JSON.parse(body).uri};
+		console.log(res);
+		deferred.resolve(res);
 	});
-  
-});
 
-module.exports = router;
+	return deferred.promise;
+};
+
+module.exports = resolve;

@@ -2,19 +2,23 @@ var express = require('express');
 var router = express.Router();
 var config = require('../config');
 var APIScrapping = require('./helpers/APIScrapping');
+var Q = require('q');
+
+var likes = {};
 
 /* GET all likes from user. */
-router.get('/all', function(req, res, next) {
+likes.all = function(userUri) {
 	
+	var deferred = Q.defer();
+
 	var likesList = [];
-	var userUri = req.query.uri;
-	
 	var next_href = userUri+"/favorites.json?consumer_key="+config.consumer_key+"&linked_partitioning=1&page_size=200";
 	
-	return APIScrapping.getResults(next_href, likesList).then(function(finalLikesList){
+	APIScrapping.getResults(next_href, likesList).then(function(finalLikesList){
+		deferred.resolve({likes: finalLikesList});
+	}).done();
 
-		res.json({likes: finalLikesList});
-	});
-});
+	return deferred.promise;
+};
 
-module.exports = router;
+module.exports = likes;

@@ -2,8 +2,26 @@ var expect = require('expect.js');
 var assert = require('assert');
 var request = require("request");
 
+var favoriters = require("../routes/favoriters");
+var resolve = require("../routes/resolve");
+var likes = require("../routes/likes");
+
 describe('TESTS', function() {
-	
+
+	it('Should get all user\'s likes', function(done) {
+		this.timeout(10000);
+		
+		url = encodeURIComponent("https://soundcloud.com/xtonex");
+		
+		resolve.profile(url).then(function(result) {		
+			likes.all(result.userUri).then(function(result) {
+				expect(result.likes.length).equal(1242);
+				done();
+			}).done();
+		}).done();
+    });
+
+
 	it('Should get all user\'s data', function(done) {
 		this.timeout(999999999);
 		
@@ -29,26 +47,17 @@ describe('TESTS', function() {
 
 describe.skip('TESTS - OK', function() {
 
-	it('Should count favoriters for one track and then get all these favoriters', function(done) {
+	it('Should count favoriters for one track', function(done) {
 		this.timeout(10000);
 
 		trackId = "285989934";
 		
-		request("http://localhost:3000/favoriters/favoritings-count?trackId="+trackId,
-			function(error, response, body) {
+		favoriters.favorites_count(trackId).then(function(result) {
 
-			responseObj_track_count = JSON.parse(body);
-			expect(responseObj_track_count.favoritings_count).to.be.greaterThan(1970);
+			expect(result.favoritings_count).to.be.greaterThan(1970);
+			done();
 
-			request("http://localhost:3000/favoriters/get?trackId="+trackId,
-				function(error, response, body) {
-
-				responseObj_track_get = JSON.parse(body);
-				expect(responseObj_track_get.favoriters.length).to.be.greaterThan(1800);
-				
-				done();
-			});
-		});		
+		}).done();		
     });
 
 	it('Should get all user\'s data', function(done) {
