@@ -5,7 +5,7 @@ var request = require("request");
 
 var APIScrapping = {};
 
-APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod, progress) {
+APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod, job) {
 
 	APIScrapping.addResults = addResultsMethod;
 	var deferred = Q.defer();
@@ -23,8 +23,8 @@ APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod
 
 			var parsedBody = JSON.parse(body);
 
-			if(progress)
-			console.log(progress.job.data.trackId +", begin inputResultsList.length: "+inputResultsList.length);
+			if(job)
+			console.log(job.data.trackId +", begin inputResultsList.length: "+inputResultsList.length);
 
 			//var newResultsList;
 			if(addResultsMethod == "addResultsFavoriters") {
@@ -35,22 +35,28 @@ APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod
 			}
 			//console.log("list length in req:",newResultsList.length);
 
-			if(progress) {
-				console.log(progress.job.data.trackId +", newResultsList.length: "+newResultsList.length);
-				console.log(progress.job.data.trackId +", progress.job.data.expectedResultsLength: "+progress.job.data.expectedResultsLength);
-				//console.log("newResultsList : ", newResultsList);
-				var percent = Math.ceil((newResultsList.length/progress.job.data.expectedResultsLength)*100);
+			if(job) {
+				
+				// get mainJob progress to know if we have enough favoriters
+				// (it takes a while to get favoriters for famous tracks, so we decide to abort)
+				job.data.mainQueue.getJob(job.data.mainJobId, function (err, job) {
+					console.log('------------------------- Job '+job.data.mainJobId+' has status ' + job.status);
+				});
+
+				var percent = Math.ceil((newResultsList.length/job.job.data.expectedResultsLength)*100);
+				
 				// in case there's new likes while we get favoriters
 				if(percent > 100) {
 					percent = 100;
 				}
-				progress.job.reportProgress(percent);
+
+				job.reportProgress(percent);
 			}
 
 			// Do we continue ?
 			// YES
 			if(parsedBody.next_href) {
-				return APIScrapping.getResults(parsedBody.next_href, newResultsList, "addResultsFavoriters", progress).then(function(){
+				return APIScrapping.getResults(parsedBody.next_href, newResultsList, "addResultsFavoriters", job).then(function(){
 					deferred.resolve(newResultsList);
 				});
 			}

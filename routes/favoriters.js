@@ -22,7 +22,7 @@ favoriters.favorites_count = function(trackId) {
 	return deferred.promise;
 };
 
-favoriters.get = function(trackId, favoritings_count) {
+favoriters.get = function(trackId, favoritings_count, mainQueue, mainJobId) {
 
 	var deferred = Q.defer();
 	
@@ -30,7 +30,7 @@ favoriters.get = function(trackId, favoritings_count) {
 	scrappingQueue.on('error', function (err) {
 		console.log('A queue error happened: ' + err.message);
 	});
-	var job = scrappingQueue.createJob({trackId:trackId,expectedResultsLength:favoritings_count});
+	var job = scrappingQueue.createJob({trackId:trackId,expectedResultsLength:favoritings_count,mainQueue:mainQueue,mainJobId:mainJobId});
 	job.save(function(err, job){
 		console.log("CREATED");
 		job.on('progress', function (progress) {
@@ -49,7 +49,7 @@ favoriters.get = function(trackId, favoritings_count) {
 		
 		var next_href = "https://api.soundcloud.com/tracks/"+job.data.trackId+"/favoriters.json?consumer_key="+config.consumer_key+"&linked_partitioning=1&page_size=200";
 
-		APIScrapping.getResults(next_href, [], "addResultsFavoriters", {job:job, expectedResultsLength:10}).then(function(finalFavoritersList){
+		APIScrapping.getResults(next_href, [], "addResultsFavoriters", job).then(function(finalFavoritersList){
 
 			if(finalFavoritersList.error) {
 				deferred.resolve({error:"Error occured in APIScrapping.getResults with trackId "+trackId+", error: "+e});

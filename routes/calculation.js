@@ -24,25 +24,25 @@ router.get('/get-all-data', function(req, res, next) {
             var writeStream = fs.createWriteStream("output.json");
             writeStream.write("{");
 
-            var favoritersQueue = new Queue('scrappingQueue');
-            favoritersQueue.on('error', function (err) {
+            var mainQueue = new Queue('scrappingQueue');
+            mainQueue.on('error', function (err) {
                 console.log('A queue error happened: ' + err.message);
             });
-            var job = favoritersQueue.createJob({numberProcessed:0,numberToProcess:responseObj_likes.likes.length});
-            job.save(function(err, job){
+            var mainJob = mainQueue.createJob({numberProcessed:0,numberToProcess:responseObj_likes.likes.length});
+            mainJob.save(function(err, job){
                 console.log("CREATED");
-                job.on('progress', function (progress) {
+                mainJob.on('progress', function (progress) {
                     console.log('### gettting favs , reported progress: ' + progress + '%');
                 });
-                job.on('succeeded', function (result) {
+                mainJob.on('succeeded', function (result) {
                     //console.log('Received result for job ' + job.id + ': ' , result);
                 });
-                job.on('failed', function (err) {
-                    console.log('Job ' + job.id + ' failed with error ' + err.message);
+                mainJob.on('failed', function (err) {
+                    console.log('Job ' + mainJob.id + ' failed with error ' + err.message);
                 });
             });
 
-            favoritersQueue.process(function (job, done) {
+            mainQueue.process(function (mainJob, done) {
 
                 var limit = responseObj_likes.likes.length;
                 //var limit = 1;
@@ -55,7 +55,7 @@ router.get('/get-all-data', function(req, res, next) {
 
                     // TODO : get nb favoriters then be able to skip if too much
 
-                    var promiseTrackid = favoriters.get(trackId, favoritings_count).then(function(favoritersForThisTrack) {
+                    var promiseTrackid = favoriters.get(trackId, favoritings_count, mainQueue, mainJob.id).then(function(favoritersForThisTrack) {
 
                         if(!favoritersForThisTrack.error) {
                             var processingTrackId =  Object.keys(favoritersForThisTrack)[0];
@@ -68,15 +68,15 @@ router.get('/get-all-data', function(req, res, next) {
 
                         writeStream.write(",");
                         //console.log("### job.data.numberToProcess : "+job.data.numberToProcess);
-                        var percent = Math.ceil((job.data.numberProcessed++/job.data.numberToProcess)*100);
-                        job.reportProgress(percent);
+                        var percent = Math.ceil((mainJob.data.numberProcessed++/mainJob.data.numberToProcess)*100);
+                        mainJob.reportProgress(percent);
                     });
                     promises.push(promiseTrackid);
                 }
 
                 Q.all(promises).then(function() {
 
-                    return done(null, job.data);
+                    return done(null, mainJob.data);
 
                     console.log("getting all favoriters for all musics finished");
                     
