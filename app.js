@@ -13,7 +13,6 @@ var app = express();
 
 // Queue init
 var client = redis.createClient();
-scrappingQueue = new Queue('scrappingQueue');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

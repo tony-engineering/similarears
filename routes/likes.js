@@ -14,7 +14,9 @@ likes.all = function(userUri) {
 	var likesList = [];
 	var next_href = userUri+"/favorites.json?consumer_key="+config.consumer_key+"&linked_partitioning=1&page_size=200";
 	
-	APIScrapping.getResults(next_href, likesList).then(function(finalLikesList){
+	APIScrapping.aaa = 1;
+
+	APIScrapping.getResults(next_href, likesList, "addResultsLikes").then(function(finalLikesList){
 		deferred.resolve({likes: finalLikesList});
 	}).done();
 

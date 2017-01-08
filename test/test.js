@@ -8,20 +8,6 @@ var likes = require("../routes/likes");
 
 describe('TESTS', function() {
 
-	it('Should get all user\'s likes', function(done) {
-		this.timeout(10000);
-		
-		url = encodeURIComponent("https://soundcloud.com/xtonex");
-		
-		resolve.profile(url).then(function(result) {		
-			likes.all(result.userUri).then(function(result) {
-				expect(result.likes.length).equal(1242);
-				done();
-			}).done();
-		}).done();
-    });
-
-
 	it('Should get all user\'s data', function(done) {
 		this.timeout(999999999);
 		
@@ -30,22 +16,30 @@ describe('TESTS', function() {
 		//var url = "https://soundcloud.com/jay-kay";
 		url = "https://soundcloud.com/romain-vina";
 		//var url = "https://soundcloud.com/user-141278973";
-		
-		var options = {
-			url: "http://localhost:3000/calculation/get-all-data?url="+url,
-			timeout: 999999999
-		};
 
-		request(options,
+		request("http://localhost:3000/calculation/get-all-data?url="+url,
 			function(error, response, body) {
 			
-			console.log(body);
+			//console.log(body);
 			done();
 		});
     });
 });
 
 describe.skip('TESTS - OK', function() {
+
+	it('Should get all user\'s likes', function(done) {
+		this.timeout(10000);
+		
+		url = encodeURIComponent("https://soundcloud.com/xtonex");
+		
+		resolve.profile(url).then(function(result) {		
+			likes.all(result.userUri).then(function(result) {
+				expect(result.likes.length).to.be.greaterThan(1240);
+				done();
+			}).done();
+		}).done();
+    });
 
 	it('Should count favoriters for one track', function(done) {
 		this.timeout(10000);

@@ -1,3 +1,5 @@
+"use strict";
+
 var express = require('express');
 var router = express.Router();
 var request = require("request");
@@ -7,6 +9,7 @@ var resolve = require('./resolve');
 var favoriters = require('./favoriters');
 var Q = require('q');
 var fs = require('fs');
+var Queue = require('bee-queue');
 
 router.get('/get-all-data', function(req, res, next) {
 	req.setTimeout(0);
@@ -16,20 +19,23 @@ router.get('/get-all-data', function(req, res, next) {
 
         likes.all(result.userUri).then(function(responseObj_likes) {
             
-            var allData = [];
             var promises = [];
             var ranking = {};
             var writeStream = fs.createWriteStream("output.json");
             writeStream.write("{");
 
             //var limit = responseObj_likes.likes.length;
-            var limit = 2;
+            var limit = 10;
             for(var i=0; i<limit; i++) {
-                var trackId = responseObj_likes.likes[i];
+
+                console.log("---------------- "+i);
+
+                var trackId = responseObj_likes.likes[i].id;
+                var favoritings_count = responseObj_likes.likes[i].favoritings_count;
 
                 // TODO : get nb favoriters then be able to skip if too much
 
-                var promiseTrackid = favoriters.get(trackId).then(function(favoritersForThisTrack) {
+                var promiseTrackid = favoriters.get(trackId, favoritings_count).then(function(favoritersForThisTrack) {
 
                     if(!favoritersForThisTrack.error) {
                         var processingTrackId =  Object.keys(favoritersForThisTrack)[0];
@@ -47,8 +53,7 @@ router.get('/get-all-data', function(req, res, next) {
 
             Q.all(promises).then(function() {
 
-                console.log("all finished");
-                console.log("ranking length at the end : "+Object.keys(ranking).length);
+                console.log("getting all favoriters for all musics finished");
                 
                 writeStream.write("}");
                 writeStream.end();
