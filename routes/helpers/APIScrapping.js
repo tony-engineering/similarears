@@ -23,9 +23,6 @@ APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod
 
 			var parsedBody = JSON.parse(body);
 
-			if(job)
-			console.log(job.data.trackId +", begin inputResultsList.length: "+inputResultsList.length);
-
 			//var newResultsList;
 			if(addResultsMethod == "addResultsFavoriters") {
 				var newResultsList = APIScrapping.addResultsFavoriters(parsedBody.collection, inputResultsList);
@@ -39,11 +36,11 @@ APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod
 				
 				// get mainJob progress to know if we have enough favoriters
 				// (it takes a while to get favoriters for famous tracks, so we decide to abort)
-				job.data.mainQueue.getJob(job.data.mainJobId, function (err, job) {
-					console.log('------------------------- Job '+job.data.mainJobId+' has status ' + job.status);
-				});
+				// TODO
+				
+				console.log("job : ", job);
 
-				var percent = Math.ceil((newResultsList.length/job.job.data.expectedResultsLength)*100);
+				var percent = Math.ceil((newResultsList.length/job.data.expectedResultsLength)*100);
 				
 				// in case there's new likes while we get favoriters
 				if(percent > 100) {
@@ -79,7 +76,7 @@ APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod
 	return deferred.promise;
 }
 
-APIScrapping.addResultsFavoriters = function(collection, resultsList) {
+APIScrapping.addResultsFavoriters = function(collection, resultsList, job) {
 
 	console.log("addResultsFavoriters : adding [",collection.length+"] to ["+resultsList.length+"]");
 
@@ -91,7 +88,7 @@ APIScrapping.addResultsFavoriters = function(collection, resultsList) {
 	return resultsList;
 }
 
-APIScrapping.addResultsLikes = function(collection, resultsList) {
+APIScrapping.addResultsLikes = function(collection, resultsList, job) {
 
 	// pushing only URIs
 	for(var i=0; i<collection.length; i++) {

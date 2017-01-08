@@ -23,12 +23,14 @@ router.get('/get-all-data', function(req, res, next) {
             var ranking = {};
             var writeStream = fs.createWriteStream("output.json");
             writeStream.write("{");
+            var mainQueue = undefined;
+            var mainJob = undefined;
 
-            var mainQueue = new Queue('scrappingQueue');
+            mainQueue = new Queue('mainQueue');
             mainQueue.on('error', function (err) {
                 console.log('A queue error happened: ' + err.message);
             });
-            var mainJob = mainQueue.createJob({numberProcessed:0,numberToProcess:responseObj_likes.likes.length});
+            mainJob = mainQueue.createJob({numberProcessed:0,numberToProcess:responseObj_likes.likes.length});
             mainJob.save(function(err, job){
                 console.log("CREATED");
                 mainJob.on('progress', function (progress) {
@@ -43,9 +45,10 @@ router.get('/get-all-data', function(req, res, next) {
             });
 
             mainQueue.process(function (mainJob, done) {
-
-                var limit = responseObj_likes.likes.length;
-                //var limit = 1;
+                console.log("############## job.data: ",mainJob.data);
+                
+                //var limit = responseObj_likes.likes.length;
+                var limit = 1;
                 for(var i=0; i<limit; i++) {
 
                     console.log("---------------- "+i);
@@ -55,7 +58,7 @@ router.get('/get-all-data', function(req, res, next) {
 
                     // TODO : get nb favoriters then be able to skip if too much
 
-                    var promiseTrackid = favoriters.get(trackId, favoritings_count, mainQueue, mainJob.id).then(function(favoritersForThisTrack) {
+                    var promiseTrackid = favoriters.get(trackId, favoritings_count).then( favoritersForThisTrack => {
 
                         if(!favoritersForThisTrack.error) {
                             var processingTrackId =  Object.keys(favoritersForThisTrack)[0];
@@ -67,7 +70,7 @@ router.get('/get-all-data', function(req, res, next) {
                         }
 
                         writeStream.write(",");
-                        //console.log("### job.data.numberToProcess : "+job.data.numberToProcess);
+                        
                         var percent = Math.ceil((mainJob.data.numberProcessed++/mainJob.data.numberToProcess)*100);
                         mainJob.reportProgress(percent);
                     });

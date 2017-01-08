@@ -14,6 +14,20 @@ var app = express();
 // Queue init
 var client = redis.createClient();
 
+// BE-Queue UI
+var beequeueui = require('bee-queue-ui/app')({
+    redis: {
+      host: '127.0.0.1',
+      port: '6379'
+    }
+  });
+app.use('/bee-queue-ui', function(req, res, next){
+  req.basepath = '/bee-queue-ui';
+  res.locals.basepath = '/bee-queue-ui';
+  next();
+}, beequeueui );
+app.listen(9000);
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');

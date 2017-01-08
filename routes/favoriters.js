@@ -22,15 +22,17 @@ favoriters.favorites_count = function(trackId) {
 	return deferred.promise;
 };
 
-favoriters.get = function(trackId, favoritings_count, mainQueue, mainJobId) {
+favoriters.get = function(trackId, favoritings_count) {
 
 	var deferred = Q.defer();
-	
-	var scrappingQueue = new Queue('scrappingQueue');
+	var scrappingQueue = undefined;
+	var job = undefined;
+
+	scrappingQueue = new Queue('scrappingQueue');
 	scrappingQueue.on('error', function (err) {
 		console.log('A queue error happened: ' + err.message);
 	});
-	var job = scrappingQueue.createJob({trackId:trackId,expectedResultsLength:favoritings_count,mainQueue:mainQueue,mainJobId:mainJobId});
+	job = scrappingQueue.createJob({trackId:trackId,expectedResultsLength:favoritings_count}).timeout(10000);
 	job.save(function(err, job){
 		console.log("CREATED");
 		job.on('progress', function (progress) {
@@ -59,10 +61,10 @@ favoriters.get = function(trackId, favoritings_count, mainQueue, mainJobId) {
 
 			var resultObj = {};
 			resultObj[trackId] = finalFavoritersList;
-			
+
 			deferred.resolve(resultObj);
 			return done(null, job.data);
-		});
+		}).done();
 	});
 
 	return deferred.promise;
