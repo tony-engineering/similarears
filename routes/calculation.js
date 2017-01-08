@@ -48,7 +48,7 @@ router.get('/get-all-data', function(req, res, next) {
                 console.log("############## job.data: ",mainJob.data);
                 
                 //var limit = responseObj_likes.likes.length;
-                var limit = 1;
+                var limit = 5;
                 for(var i=0; i<limit; i++) {
 
                     console.log("---------------- "+i);
@@ -58,7 +58,7 @@ router.get('/get-all-data', function(req, res, next) {
 
                     // TODO : get nb favoriters then be able to skip if too much
 
-                    var promiseTrackid = favoriters.get(trackId, favoritings_count).then( favoritersForThisTrack => {
+                    var promiseTrackid = favoriters.get(trackId, favoritings_count, mainJob).then( favoritersForThisTrack => {
 
                         if(!favoritersForThisTrack.error) {
                             var processingTrackId =  Object.keys(favoritersForThisTrack)[0];
@@ -72,9 +72,20 @@ router.get('/get-all-data', function(req, res, next) {
                         writeStream.write(",");
                         
                         var percent = Math.ceil((mainJob.data.numberProcessed++/mainJob.data.numberToProcess)*100);
+                        // keep it in data to be able to access it in scrappingQueue jobs
+                        mainJob.data.percent = percent;
+                        // report it
                         mainJob.reportProgress(percent);
-                    });
+                        // for tests
+                        //if(percent > 60) {
+                          //  process.exit(0);
+                        //}
+                        console.log("OK");
+
+                    }).done();
                     promises.push(promiseTrackid);
+
+                    console.log(JSON.stringify(promises));
                 }
 
                 Q.all(promises).then(function() {

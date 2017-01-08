@@ -5,10 +5,14 @@ var request = require("request");
 
 var APIScrapping = {};
 
-APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod, job) {
+APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod, job, mainJob, abort) {
 
-	APIScrapping.addResults = addResultsMethod;
 	var deferred = Q.defer();
+
+	if(abort) {
+		deferred.resolve(inputResultsList);
+	}	
+
 	var options = {
 		url: next_href,
 		timeout: 999999999
@@ -33,15 +37,19 @@ APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod
 			//console.log("list length in req:",newResultsList.length);
 
 			if(job) {
-				
 				// get mainJob progress to know if we have enough favoriters
 				// (it takes a while to get favoriters for famous tracks, so we decide to abort)
 				// TODO
 				
-				console.log("job : ", job);
+				//job.data.abort = true;
+				//console.log("job.data : ", job.data);
 
 				var percent = Math.ceil((newResultsList.length/job.data.expectedResultsLength)*100);
 				
+				/*if(mainJob.data.percent >= 50 && percent <= 90) {
+					parsedBody.next_href = null;
+				}*/
+
 				// in case there's new likes while we get favoriters
 				if(percent > 100) {
 					percent = 100;
@@ -53,7 +61,17 @@ APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod
 			// Do we continue ?
 			// YES
 			if(parsedBody.next_href) {
-				return APIScrapping.getResults(parsedBody.next_href, newResultsList, "addResultsFavoriters", job).then(function(){
+
+				var abort;
+				if(mainJob && mainJob.data.percent >= 50 && percent <= 90) {
+					 abort = true;
+					 console.log("_______________________________________________ SIGNAL");
+				}
+				else {
+					abort = false;
+				}
+
+				return APIScrapping.getResults(parsedBody.next_href, newResultsList, "addResultsFavoriters", job, mainJob, abort).then(function(){
 					deferred.resolve(newResultsList);
 				});
 			}

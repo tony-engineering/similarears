@@ -12,15 +12,15 @@ describe('TESTS', function() {
 		this.timeout(999999999);
 		
 		//url = "https://soundcloud.com/xtonex";
-		//url = "https://soundcloud.com/djmentol2";
+		url = "https://soundcloud.com/djmentol2";
 		//var url = "https://soundcloud.com/jay-kay";
-		url = "https://soundcloud.com/romain-vina";
+		//url = "https://soundcloud.com/romain-vina";
 		//var url = "https://soundcloud.com/user-141278973";
 
 		request("http://localhost:3000/calculation/get-all-data?url="+url,
 			function(error, response, body) {
 			
-			//console.log(body);
+			console.log(body);
 			done();
 		});
     });

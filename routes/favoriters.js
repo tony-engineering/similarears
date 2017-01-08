@@ -22,40 +22,47 @@ favoriters.favorites_count = function(trackId) {
 	return deferred.promise;
 };
 
-favoriters.get = function(trackId, favoritings_count) {
+favoriters.get = function(trackId, favoritings_count, mainJob) {
 
 	var deferred = Q.defer();
 	var scrappingQueue = undefined;
 	var job = undefined;
 
-	scrappingQueue = new Queue('scrappingQueue');
+	scrappingQueue = new Queue('scrappingQueue', {catchExceptions: false});
 	scrappingQueue.on('error', function (err) {
 		console.log('A queue error happened: ' + err.message);
 	});
-	job = scrappingQueue.createJob({trackId:trackId,expectedResultsLength:favoritings_count}).timeout(10000);
+
+	job = scrappingQueue.createJob({trackId:trackId,expectedResultsLength:favoritings_count}); 
+
 	job.save(function(err, job){
 		console.log("CREATED");
 		job.on('progress', function (progress) {
 			console.log('Track ' + job.data.trackId + ' reported progress: ' + progress + '%');
+			console.log("Job data , ", job.data);
 		});
 		job.on('succeeded', function (result) {
 			//console.log('Received result for job ' + job.id + ': ' , result);
 		});
 		job.on('failed', function (err) {
-			//console.log('Job ' + job.id + ' failed with error ' + err.message);
+			console.log('Job '+ job.id + ' failed with error ' + err.message);
 		});
 	});
 
 	scrappingQueue.process(function (job, done) {
 						console.log("Going to process job id : "+job.id);
-		
+
 		var next_href = "https://api.soundcloud.com/tracks/"+job.data.trackId+"/favoriters.json?consumer_key="+config.consumer_key+"&linked_partitioning=1&page_size=200";
 
-		APIScrapping.getResults(next_href, [], "addResultsFavoriters", job).then(function(finalFavoritersList){
+		APIScrapping.getResults(next_href, [], "addResultsFavoriters", job, mainJob, false).then(function(finalFavoritersList){
+
+			//console.log("finalFavoritersList : ", finalFavoritersList);
 
 			if(finalFavoritersList.error) {
-				deferred.resolve({error:"Error occured in APIScrapping.getResults with trackId "+trackId+", error: "+e});
+				deferred.resolve({error:"Error occured in APIScrapping.getResults with trackId "+trackId+", error: "+finalFavoritersList.error});
 			}
+
+			//console.log("finalFavoritersList : ", finalFavoritersList);
 
 			console.log("Going to end job "+job.id);
 
@@ -64,10 +71,15 @@ favoriters.get = function(trackId, favoritings_count) {
 
 			deferred.resolve(resultObj);
 			return done(null, job.data);
-		}).done();
+		});
 	});
 
 	return deferred.promise;
 };
+
+favoriters.isTooLong = function() {
+
+	return false;
+}
 
 module.exports = favoriters;
