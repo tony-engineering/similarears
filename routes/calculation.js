@@ -21,8 +21,8 @@ router.get('/get-all-data', function(req, res, next) {
             
             var promises = [];
             var ranking = {};
-            var writeStream = fs.createWriteStream("output.json");
-            writeStream.write("{");
+            var writeStream = undefined;
+            writeStream = fs.createWriteStream("output.json");
             var mainQueue = undefined;
             var mainJob = undefined;
 
@@ -47,6 +47,8 @@ router.get('/get-all-data', function(req, res, next) {
             mainQueue.process(function (mainJob, done) {
                 console.log("############## job.data: ",mainJob.data);
                 
+                writeStream.write("{");
+
                 //var limit = responseObj_likes.likes.length;
                 var limit = 5;
                 for(var i=0; i<limit; i++) {
@@ -82,7 +84,7 @@ router.get('/get-all-data', function(req, res, next) {
                         //}
                         console.log("OK");
 
-                    }).done();
+                    });
                     promises.push(promiseTrackid);
 
                     console.log(JSON.stringify(promises));
@@ -90,12 +92,14 @@ router.get('/get-all-data', function(req, res, next) {
 
                 Q.all(promises).then(function() {
 
-                    return done(null, mainJob.data);
+                    
 
                     console.log("getting all favoriters for all musics finished");
                     
-                    writeStream.write("}");
+                    writeStream.write("}", function() {});
                     writeStream.end();
+
+                    fs.rename("output.json", new Date().getTime()+".json", function(){});
 
                     /*sortedRanking = [];
                     Object.keys(ranking)
@@ -111,11 +115,13 @@ router.get('/get-all-data', function(req, res, next) {
 
                     //res.json({ranking: sortedRanking});
                     res.json({result: "File created"});
+                    
+                    return done(null, mainJob.data);
 
                 }).done();
             });
-        }).done();
-    }).done();
+        });
+    });
 });
 
 router.get('/analyse-data', function(req, res, next){

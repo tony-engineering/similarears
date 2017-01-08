@@ -77,9 +77,4 @@ favoriters.get = function(trackId, favoritings_count, mainJob) {
 	return deferred.promise;
 };
 
-favoriters.isTooLong = function() {
-
-	return false;
-}
-
 module.exports = favoriters;

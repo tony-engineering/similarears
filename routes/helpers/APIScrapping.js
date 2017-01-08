@@ -10,7 +10,7 @@ APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod
 	var deferred = Q.defer();
 
 	if(abort) {
-		deferred.resolve(inputResultsList);
+		//deferred.resolve(inputResultsList);
 	}	
 
 	var options = {
