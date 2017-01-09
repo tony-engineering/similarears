@@ -171,4 +171,9 @@ router.get('/get-infos-favoriter', function(req, res, next){
     }).done();
 });
 
+router.get('/launch', function(req, res, next){
+
+    res.render('index', { title: 'Similarears' });
+});
+
 module.exports = router;
