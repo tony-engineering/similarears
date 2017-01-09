@@ -91,6 +91,8 @@ router.get('/get-all-data', function(req, res, next) {
 
                 Q.all(promises).then(function() {
 
+					var deferred = Q.defer();
+					
                     console.log("getting all favoriters for all musics finished");
                     
                     writeStream.write("}", function() {});
@@ -113,7 +115,7 @@ router.get('/get-all-data', function(req, res, next) {
 					//done(null, mainJob.data);
 					
 					//res.json({res:"Done"});
-
+					
                 });
             });
         });
@@ -122,31 +124,24 @@ router.get('/get-all-data', function(req, res, next) {
 
 router.get('/analyse-data', function(req, res, next){
 
-    var url = req.query.url;
+    var filename = req.query.filename;
+	var stringFile = fs.readFileSync(filename);
+	var allData = JSON.parse(stringFile);
+	var ranking = {};
 
-    request("http://localhost:3000/calculation/get-all-data?url="+url,
-        function(error, response, body) {
-        
-        console.log("body----------:"+body);
-
-        var allData = JSON.parse(body);
-        var ranking = {};
-
-        for(var trackId in allData) {
-            
-            var favoritersForThisTrack = allData[trackId];
-            favoritersForThisTrack.forEach(function(favoriter, index){
-                if(ranking[favoriter]) {
-                    ranking[favoriter]++;
-                }
-                else {
-                    ranking[favoriter] = 0;
-                }
-            });
-        }
-
-        res.json({results: ranking});
-    });
+	for(var trackId in allData) {
+		var favoritersForThisTrack = allData[trackId];
+		favoritersForThisTrack.forEach(function(favoriter, index){
+			if(ranking[favoriter]) {
+				ranking[favoriter]++;
+			}
+			else {
+				ranking[favoriter] = 0;
+			}
+		});
+	}
+	
+	res.json({ranking:ranking});
 });
 
 module.exports = router;
