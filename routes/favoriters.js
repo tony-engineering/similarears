@@ -86,7 +86,7 @@ favoriters.getFavoriterInfos = function(userId) {
 
 		var infos = JSON.parse(body);
 
-		deferred.resolve({username:infos.username, avatar_url:infos.avatar_url, permalink_url:infos.permalink_url});
+		deferred.resolve({username:infos.username, avatar_url:infos.avatar_url, permalink_url:infos.permalink_url, permalink:infos.permalink});
     });
 
 	return deferred.promise;
