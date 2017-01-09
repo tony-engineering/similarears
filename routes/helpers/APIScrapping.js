@@ -69,7 +69,7 @@ APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod
 			if(parsedBody.next_href) {
 
 				var abort;
-				if(mainJob && mainJob.data.percent >= 50 && percent <= 90) {
+				if(mainJob && mainJob.data.percent >= 95 && percent <= 90) {
 					 abort = true;
 					 console.log("_______________________________________________ SIGNAL");
 				}

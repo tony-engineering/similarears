@@ -59,7 +59,7 @@ favoriters.get = function(trackId, favoritings_count, mainJob) {
 			//console.log("finalFavoritersList : ", finalFavoritersList);
 
 			if(finalFavoritersList.error) {
-				deferred.resolve({error:"Error occured in APIScrapping.getResults with trackId "+trackId+", error: "+finalFavoritersList.error});
+				deferred.resolve({trackId:trackId,error:"Error occured in APIScrapping.getResults with trackId "+trackId+", error: "+finalFavoritersList.error});
 			}
 
 			//console.log("finalFavoritersList : ", finalFavoritersList);
@@ -76,5 +76,21 @@ favoriters.get = function(trackId, favoritings_count, mainJob) {
 
 	return deferred.promise;
 };
+
+favoriters.getFavoriterInfos = function(userId) {
+
+	var deferred = Q.defer();
+
+	request("https://api.soundcloud.com/users/"+userId+".json?consumer_key="+config.consumer_key,
+        function(error, response, body) {
+
+		var infos = JSON.parse(body);
+
+		deferred.resolve({username:infos.username, avatar_url:infos.avatar_url, permalink_url:infos.permalink_url});
+    });
+
+	return deferred.promise;
+};
+
 
 module.exports = favoriters;

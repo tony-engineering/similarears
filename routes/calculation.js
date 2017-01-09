@@ -21,19 +21,18 @@ router.get('/get-all-data', function(req, res, next) {
             
             var promises = [];
             var ranking = {};
-            var writeStream = undefined;
-            writeStream = fs.createWriteStream("output.json");
+            var writeStream = fs.createWriteStream("output.json");
             var mainQueue = undefined;
             var mainJob = undefined;
 			
 			console.log("responseObj_likes: ", responseObj_likes);
 			
-            mainQueue = new Queue('mainQueue');
+            mainQueue = new Queue('mainQueue'+new Date().getTime());
             mainQueue.on('error', function (err) {
                 console.log('A queue error happened: ' + err.message);
             });
             mainJob = mainQueue.createJob({numberProcessed:0,numberToProcess:responseObj_likes.likes.length});
-            mainJob.save(function(err, job){
+            mainJob.save(function(err, mainJob){
                 console.log("CREATED");
 				res.json({result: "Job created."});
                 mainJob.on('progress', function (progress) {
@@ -52,8 +51,8 @@ router.get('/get-all-data', function(req, res, next) {
                 
                 writeStream.write("{");
 
-                //var limit = responseObj_likes.likes.length;
-                var limit = 1;
+                var limit = responseObj_likes.likes.length;
+                //var limit = 1;
                 for(var i=0; i<limit; i++) {
 
                     var trackId = responseObj_likes.likes[i].id;
@@ -69,10 +68,13 @@ router.get('/get-all-data', function(req, res, next) {
                         }
                         else {
                             var error = favoritersForThisTrack;
-                            writeStream.write(JSON.stringify(error));
+                            writeStream.write('"'+error.trackId+'":'+JSON.stringify(error));
                         }
 
-                        writeStream.write(",");
+                        // if it's not the last data to print in JSON file
+                        //if(job.data.numberProcessed-1 != job.data.numberToProcess) {
+                            writeStream.write(",");
+                        //}
                         
                         var percent = Math.ceil((mainJobParam.data.numberProcessed++/mainJobParam.data.numberToProcess)*100);
                         // keep it in data to be able to access it in scrappingQueue jobs
@@ -100,18 +102,6 @@ router.get('/get-all-data', function(req, res, next) {
 
                     fs.rename("output.json", new Date().getTime()+".json", function(){});
 
-                    /*sortedRanking = [];
-                    Object.keys(ranking)
-                    .map(function (k) { return [k, ranking[k]]; })
-                    .sort(function (a, b) {
-                        if (a[1] < b[1]) return 1;
-                        if (a[1] > b[1]) return -1;
-                        return 0;
-                    })
-                    .forEach(function (d) {
-                        sortedRanking.push([d[0], d[1]]);
-                    });*/
-
 					//done(null, mainJob.data);
 					
 					//res.json({res:"Done"});
@@ -125,23 +115,60 @@ router.get('/get-all-data', function(req, res, next) {
 router.get('/analyse-data', function(req, res, next){
 
     var filename = req.query.filename;
+    var minReapparition = req.query.minReapparition;
 	var stringFile = fs.readFileSync(filename);
 	var allData = JSON.parse(stringFile);
 	var ranking = {};
+    var sortedRanking = [];
 
+    // Counting favoriters occurences
 	for(var trackId in allData) {
+
 		var favoritersForThisTrack = allData[trackId];
-		favoritersForThisTrack.forEach(function(favoriter, index){
-			if(ranking[favoriter]) {
-				ranking[favoriter]++;
-			}
-			else {
-				ranking[favoriter] = 0;
-			}
-		});
+
+        if(!favoritersForThisTrack.error) {
+            for(var i = 0; i<favoritersForThisTrack.length; i++) {
+
+                var favoriter = favoritersForThisTrack[i];
+
+                if(ranking[favoriter] != null) {
+                    ranking[favoriter]++;
+                }
+                else {
+                    ranking[favoriter] = 0;
+                }
+            }
+        }
 	}
+
+    // Sorting
+    Object.keys(ranking)
+    .map(function (k) { return [k, ranking[k]]; })
+    .sort(function (a, b) {
+        if (a[1] < b[1]) return 1;
+        if (a[1] > b[1]) return -1;
+        return 0;
+    })
+    .forEach(function (d) {
+        sortedRanking.push([d[0], d[1]]);
+    });
+
+    // Cleaning favoriters appearing just 1 time
+    sortedRanking = sortedRanking.filter(function(favoriter) {
+        return favoriter[1] >= minReapparition;
+    });
 	
-	res.json({ranking:ranking});
+    // Returning
+	res.json({ranking:sortedRanking});
+});
+
+router.get('/get-infos-favoriter', function(req, res, next){
+
+    var userId = req.query.userId;
+    
+    favoriters.getFavoriterInfos(userId).then(function(favoriterInfos){
+        res.json(favoriterInfos);
+    }).done();
 });
 
 module.exports = router;
