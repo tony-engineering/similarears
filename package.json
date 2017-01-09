@@ -3,17 +3,25 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon --config nodemon.json --stack-size=9000000 ./bin/www",
+    "start": "nodemon --config nodemon.json ./bin/www",
     "debug": "set DEBUG=* & nodemon --config nodemon.json ./bin/www",
-	  "test": "mocha"
+    "test": "mocha"
   },
   "dependencies": {
+    "bee-queue": "^0.3.0",
+    "bee-queue-ui": "^0.2.2",
     "body-parser": "~1.15.2",
     "cookie-parser": "~1.4.3",
     "debug": "~2.2.0",
+    "expect": "^1.20.2",
+    "expect.js": "^0.3.1",
     "express": "~4.14.0",
     "jade": "~1.11.0",
     "morgan": "~1.7.0",
+    "nodemon": "^1.11.0",
+    "q": "^1.4.1",
+    "redis": "^2.6.3",
+    "request": "^2.79.0",
     "serve-favicon": "~2.3.0"
   },
   "devDependencies": {

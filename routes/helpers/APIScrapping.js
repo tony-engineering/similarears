@@ -8,9 +8,14 @@ var APIScrapping = {};
 APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod, job, mainJob, abort) {
 
 	var deferred = Q.defer();
-
+	
+	//if(addResultsMethod == "addResultsFavoriters") {
+		//abort = true;
+	//}
 	if(abort) {
-		//deferred.resolve(inputResultsList);
+		console.log("ABORTED");
+		deferred.resolve(inputResultsList);
+		return;
 	}	
 
 	var options = {
@@ -22,7 +27,8 @@ APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod
 		try {
 
 			if (error || response.statusCode != 200) {
-				throw "Request failed : "+error;
+				console.log("Request failed : "+error);
+				// retry
 			}
 
 			var parsedBody = JSON.parse(body);
@@ -71,7 +77,7 @@ APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod
 					abort = false;
 				}
 
-				return APIScrapping.getResults(parsedBody.next_href, newResultsList, "addResultsFavoriters", job, mainJob, abort).then(function(){
+				return APIScrapping.getResults(parsedBody.next_href, newResultsList, addResultsMethod, job, mainJob, abort).then(function(){
 					deferred.resolve(newResultsList);
 				});
 			}
@@ -88,8 +94,13 @@ APIScrapping.getResults = function(next_href, inputResultsList, addResultsMethod
 			deferred.resolve({error: "Got error for ressource : "+next_href+", error : "+ e});
 		}
 	}).on('error', function(err) {
+		
 		console.log("err:"+err);
-		process.exit();
+		
+		// retry
+		return APIScrapping.getResults(next_href, inputResultsList, addResultsMethod, job, mainJob, abort).then(function(){
+			deferred.resolve(inputResultsList);
+		});
 	});
 	return deferred.promise;
 }

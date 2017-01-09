@@ -5,9 +5,11 @@ var request = require("request");
 var favoriters = require("../routes/favoriters");
 var resolve = require("../routes/resolve");
 var likes = require("../routes/likes");
+var APIScrapping = require("../routes/helpers/APIScrapping");
+var config = require('../config');
 
 describe('TESTS', function() {
-
+	
 	it('Should get all user\'s data', function(done) {
 		this.timeout(999999999);
 		
@@ -27,7 +29,33 @@ describe('TESTS', function() {
 });
 
 describe.skip('TESTS - OK', function() {
+	
+	it('Should get results for favoriters', function(doneTest) {
+		this.timeout(0);
+		
+		var trackId = "285989934";
+		var next_href = "https://api.soundcloud.com/tracks/"+trackId+"/favoriters.json?consumer_key="+config.consumer_key+"&linked_partitioning=1&page_size=200";
+		
+		APIScrapping.getResults(next_href, [], "addResultsFavoriters").then(function(finalFavoritersList){
 
+			//console.log("finalFavoritersList : ", finalFavoritersList);
+
+			if(finalFavoritersList.error) {
+				deferred.resolve({error:"Error occured in APIScrapping.getResults with trackId "+trackId+", error: "+finalFavoritersList.error});
+			}
+
+			//console.log("finalFavoritersList : ", finalFavoritersList);
+
+			//console.log("Going to end job "+job.id);
+
+			var resultObj = {};
+			resultObj[trackId] = finalFavoritersList;
+
+			expect(resultObj[trackId].length).to.be.greaterThan(1940);
+			doneTest();
+		}).done();
+	});
+	
 	it('Should get all user\'s likes', function(done) {
 		this.timeout(10000);
 		

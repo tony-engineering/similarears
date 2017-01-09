@@ -25,7 +25,9 @@ router.get('/get-all-data', function(req, res, next) {
             writeStream = fs.createWriteStream("output.json");
             var mainQueue = undefined;
             var mainJob = undefined;
-
+			
+			console.log("responseObj_likes: ", responseObj_likes);
+			
             mainQueue = new Queue('mainQueue');
             mainQueue.on('error', function (err) {
                 console.log('A queue error happened: ' + err.message);
@@ -33,34 +35,33 @@ router.get('/get-all-data', function(req, res, next) {
             mainJob = mainQueue.createJob({numberProcessed:0,numberToProcess:responseObj_likes.likes.length});
             mainJob.save(function(err, job){
                 console.log("CREATED");
+				res.json({result: "Job created."});
                 mainJob.on('progress', function (progress) {
                     console.log('### gettting favs , reported progress: ' + progress + '%');
                 });
                 mainJob.on('succeeded', function (result) {
-                    //console.log('Received result for job ' + job.id + ': ' , result);
+                    
                 });
                 mainJob.on('failed', function (err) {
                     console.log('Job ' + mainJob.id + ' failed with error ' + err.message);
                 });
             });
 
-            mainQueue.process(function (mainJob, done) {
-                console.log("############## job.data: ",mainJob.data);
+            mainQueue.process(function (mainJobParam, done) {
+                console.log("############## job.data: ",mainJobParam.data);
                 
                 writeStream.write("{");
 
                 //var limit = responseObj_likes.likes.length;
-                var limit = 5;
+                var limit = 1;
                 for(var i=0; i<limit; i++) {
-
-                    console.log("---------------- "+i);
 
                     var trackId = responseObj_likes.likes[i].id;
                     var favoritings_count = responseObj_likes.likes[i].favoritings_count;
 
                     // TODO : get nb favoriters then be able to skip if too much
 
-                    var promiseTrackid = favoriters.get(trackId, favoritings_count, mainJob).then( favoritersForThisTrack => {
+                    var promiseTrackid = favoriters.get(trackId, favoritings_count, mainJobParam).then(favoritersForThisTrack => {
 
                         if(!favoritersForThisTrack.error) {
                             var processingTrackId =  Object.keys(favoritersForThisTrack)[0];
@@ -73,11 +74,11 @@ router.get('/get-all-data', function(req, res, next) {
 
                         writeStream.write(",");
                         
-                        var percent = Math.ceil((mainJob.data.numberProcessed++/mainJob.data.numberToProcess)*100);
+                        var percent = Math.ceil((mainJobParam.data.numberProcessed++/mainJobParam.data.numberToProcess)*100);
                         // keep it in data to be able to access it in scrappingQueue jobs
-                        mainJob.data.percent = percent;
+                        mainJobParam.data.percent = percent;
                         // report it
-                        mainJob.reportProgress(percent);
+                        mainJobParam.reportProgress(percent);
                         // for tests
                         //if(percent > 60) {
                           //  process.exit(0);
@@ -86,13 +87,9 @@ router.get('/get-all-data', function(req, res, next) {
 
                     });
                     promises.push(promiseTrackid);
-
-                    console.log(JSON.stringify(promises));
                 }
 
                 Q.all(promises).then(function() {
-
-                    
 
                     console.log("getting all favoriters for all musics finished");
                     
@@ -113,12 +110,11 @@ router.get('/get-all-data', function(req, res, next) {
                         sortedRanking.push([d[0], d[1]]);
                     });*/
 
-                    //res.json({ranking: sortedRanking});
-                    res.json({result: "File created"});
-                    
-                    return done(null, mainJob.data);
+					//done(null, mainJob.data);
+					
+					//res.json({res:"Done"});
 
-                }).done();
+                });
             });
         });
     });
