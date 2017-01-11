@@ -13,4 +13,4 @@ Similarears is a web application using Soundcloud API to find people with the sa
 1. Select the target Soundcloud profile. For this example we will use : http://soundcloud.com/xtonex
 2. Go to http://localhost:3000/calculation/get-all-data?url=http://soundcloud.com/xtonex . This will launch the profile's scrapping.
 3. The generated file for the specified profile will appear in the root directory. This file contains the list of favoriters for each track the given profile liked on Soundcloud. The process is not automated yet so you have to launch file analysis manually. See below.
-4. Go to http://localhost:3000/calculation/analyse-data?filename=<filename_generated>.json
+4. Go to http://localhost:3000/calculation/launch?filename=<filename_generated>.json
