@@ -1,6 +1,9 @@
 extends layout
 
 block content
+
+  body(onload="launchGetFavoritersInfos('#{fileContainingData}', '#{minReapparition}')")
+
   h1= title
 
   div#ranking

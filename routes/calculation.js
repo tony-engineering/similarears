@@ -12,7 +12,7 @@ var fs = require('fs');
 var Queue = require('bee-queue');
 
 router.get('/get-all-data', function(req, res, next) {
-	req.setTimeout(0);
+	//req.setTimeout(0);
 
 	var url = req.query.url;
     resolve.profile(url).then(function(result) {
@@ -32,16 +32,16 @@ router.get('/get-all-data', function(req, res, next) {
                 console.log('A queue error happened: ' + err.message);
             });
             mainJob = mainQueue.createJob({numberProcessed:0,numberToProcess:responseObj_likes.likes.length});
-            mainJob.save(function(err, mainJob){
+            mainJob.save(function(err, job){
                 console.log("CREATED");
 				res.json({result: "Job created."});
-                mainJob.on('progress', function (progress) {
+                job.on('progress', function (progress) {
                     console.log('### gettting favs , reported progress: ' + progress + '%');
                 });
-                mainJob.on('succeeded', function (result) {
+                job.on('succeeded', function (result) {
                     
                 });
-                mainJob.on('failed', function (err) {
+                job.on('failed', function (err) {
                     console.log('Job ' + mainJob.id + ' failed with error ' + err.message);
                 });
             });
@@ -70,23 +70,19 @@ router.get('/get-all-data', function(req, res, next) {
                             var error = favoritersForThisTrack;
                             writeStream.write('"'+error.trackId+'":'+JSON.stringify(error));
                         }
-
-                        // if it's not the last data to print in JSON file
-                        //if(job.data.numberProcessed-1 != job.data.numberToProcess) {
-                            writeStream.write(",");
-                        //}
                         
                         var percent = Math.ceil((mainJobParam.data.numberProcessed++/mainJobParam.data.numberToProcess)*100);
                         // keep it in data to be able to access it in scrappingQueue jobs
                         mainJobParam.data.percent = percent;
                         // report it
                         mainJobParam.reportProgress(percent);
-                        // for tests
-                        //if(percent > 60) {
-                          //  process.exit(0);
-                        //}
-                        console.log("OK");
+                        
+                        // if it's not the last data to print in JSON file
+                        if(mainJobParam.data.numberProcessed != mainJobParam.data.numberToProcess) {
+                            writeStream.write(",");
+                        }
 
+                        console.log("OK");
                     });
                     promises.push(promiseTrackid);
                 }
@@ -96,7 +92,7 @@ router.get('/get-all-data', function(req, res, next) {
 					var deferred = Q.defer();
 					
                     console.log("getting all favoriters for all musics finished");
-                    
+
                     writeStream.write("}", function() {});
                     writeStream.end();
 
@@ -173,7 +169,10 @@ router.get('/get-infos-favoriter', function(req, res, next){
 
 router.get('/launch', function(req, res, next){
 
-    res.render('index', { title: 'Similarears' });
+    var fileContainingData = req.query.fileContainingData;
+    var minReapparition = req.query.minReapparition;
+
+    res.render('index', { title: 'Similarears', fileContainingData: fileContainingData, minReapparition: minReapparition });
 });
 
 module.exports = router;
