@@ -13,11 +13,12 @@ describe('TESTS', function() {
 	it('Should get all user\'s data', function(done) {
 		this.timeout(999999999);
 		
-		url = "https://soundcloud.com/xtonex";
-		//url = "https://soundcloud.com/djmentol2";
+		//var url = "https://soundcloud.com/xtonex";
+		//var url = "https://soundcloud.com/djmentol2";
 		//var url = "https://soundcloud.com/jay-kay";
-		//url = "https://soundcloud.com/romain-vina";
+		//var url = "https://soundcloud.com/romain-vina";
 		//var url = "https://soundcloud.com/user-141278973";
+		var url = "https://soundcloud.com/astral-dopamineclub";
 
 		request("http://localhost:3000/calculation/get-all-data?url="+url,
 			function(error, response, body) {
