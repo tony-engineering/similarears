@@ -35,7 +35,14 @@ else {
 	};
 }
 
-var beequeueui = require('bee-queue-ui/app')(redis_config);
+console.log(typeof(redis_config));
+
+var beequeueui = require('bee-queue-ui/app')({
+		redis: {
+			host: process.env.REDIS_HOST,
+			port: process.env.REDIS_PORT
+		}
+	});
 app.use('/bee-queue-ui', function(req, res, next){
   req.basepath = '/bee-queue-ui';
   res.locals.basepath = '/bee-queue-ui';
