@@ -34,7 +34,7 @@ else {
 	};
 }
 
-console.log("process.env : ", process.env);
+/*console.log("process.env : ", process.env);
 
 var beequeueui = require('bee-queue-ui/app')(redis_config);
 app.use('/bee-queue-ui', function(req, res, next){
@@ -42,7 +42,7 @@ app.use('/bee-queue-ui', function(req, res, next){
   res.locals.basepath = '/bee-queue-ui';
   next();
 }, beequeueui );
-app.listen(9000);
+app.listen(9000);*/
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
