@@ -17,11 +17,10 @@ var PRODUCTION_MODE = true;
 
 if(PRODUCTION_MODE) {
   // Redis init
-  var client = redis.createClient(process.env.REDIS_HOST);
+  var client = redis.createClient(process.env.REDIS_URL);
 	var redis_config = {
 		redis: {
-			host: process.env.REDIS_HOST,
-			port: process.env.REDIS_PORT
+			host: process.env.REDIS_URL
 		}
 	};
 }
@@ -35,14 +34,9 @@ else {
 	};
 }
 
-console.log(typeof(redis_config));
+console.log("process.env : ", process.env);
 
-var beequeueui = require('bee-queue-ui/app')({
-		redis: {
-			host: process.env.REDIS_HOST,
-			port: process.env.REDIS_PORT
-		}
-	});
+var beequeueui = require('bee-queue-ui/app')(redis_config);
 app.use('/bee-queue-ui', function(req, res, next){
   req.basepath = '/bee-queue-ui';
   res.locals.basepath = '/bee-queue-ui';
