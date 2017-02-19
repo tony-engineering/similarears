@@ -15,12 +15,27 @@ var app = express();
 var client = redis.createClient();
 
 // BE-Queue UI
-var beequeueui = require('bee-queue-ui/app')({
-    redis: {
-      host: '127.0.0.1',
-      port: '6379'
-    }
-  });
+
+var PRODUCTION_MODE = true;
+
+if(PRODUCTION_MODE) {
+	var redis_config = {
+		redis: {
+			host: process.env.REDIS_HOST,
+			port: process.env.REDIS_PORT
+		}
+	};
+}
+else {
+	var redis_config = {
+		redis: {
+			host: '127.0.0.1',
+			port: '6379'
+		}
+	};
+}
+
+var beequeueui = require('bee-queue-ui/app')(redis_config);
 app.use('/bee-queue-ui', function(req, res, next){
   req.basepath = '/bee-queue-ui';
   res.locals.basepath = '/bee-queue-ui';
