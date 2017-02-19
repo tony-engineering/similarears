@@ -11,14 +11,13 @@ var calculation = require('./routes/calculation');
 
 var app = express();
 
-// Queue init
-var client = redis.createClient();
-
 // BE-Queue UI
 
 var PRODUCTION_MODE = true;
 
 if(PRODUCTION_MODE) {
+  // Redis init
+  var client = redis.createClient(process.env.REDIS_HOST);
 	var redis_config = {
 		redis: {
 			host: process.env.REDIS_HOST,
@@ -27,6 +26,7 @@ if(PRODUCTION_MODE) {
 	};
 }
 else {
+  var client = redis.createClient();
 	var redis_config = {
 		redis: {
 			host: '127.0.0.1',
